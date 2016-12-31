@@ -5,7 +5,7 @@ function reducer(state, action) {
       timestamp: Date.now(),
       id: uuid.v4(),
     };
-    const threadIndex = state.threads.findIndes(
+    const threadIndex = state.threads.findIndex(
       (t) => t.id === action.threadId
     );
     const oldThread = state.threads[threadIndex];
@@ -79,7 +79,7 @@ const App = React.createClass({
         title: t.title,
         active: t.id === activeThreadId,
       }
-    );
+    ));
     return (
       <div className='ui segment'>
         <ThreadTabs tabs={tabs} />
@@ -129,7 +129,7 @@ const Thread = React.createClass({
         <div className='ui comments'>
           {messages}
         </div>
-        <MessageInput />
+        <MessageInput threadId={this.props.thread.id} />
       </div>
     );
   },
@@ -140,6 +140,7 @@ const MessageInput = React.createClass({
     store.dispatch({
       type: 'ADD_MESSAGE',
       text: this.refs.messageInput.value,
+      threadId: this.props.threadId,
     });
     this.refs.messageInput.value = '';
   },
