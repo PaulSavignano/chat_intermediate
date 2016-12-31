@@ -1,37 +1,47 @@
 function reducer(state, action) {
+  return {
+    activeThreadId: activeThreadIdReducer(state.activeThreadId, action),
+    threads: threadsReducer(state.threads, action),
+  };
+}
+
+function activeThreadIdReducer(state, action) {
+  if (action.type === 'OPEN_THREAD') {
+    return action.id;
+  } else {
+    return state;
+  }
+}
+
+function threadsReducer(state, action) {
   if (action.type === 'ADD_MESSAGE') {
     const newMessage = {
       text: action.text,
       timestamp: Date.now(),
       id: uuid.v4(),
     };
-    const threadIndex = state.threads.findIndex(
+    const threadIndex = state.findIndex(
       (t) => t.id === action.threadId
     );
-    const oldThread = state.threads[threadIndex];
+    const oldThread = state[threadIndex];
     const newThread = {
       ...oldThread,
       messages: oldThread.messages.concat(newMessage),
     };
-    return {
-      ...state,
-      threads: [
-        ...state.threads.slice(0, threadIndex),
-        newThread,
-        ...state.threads.slice(
-          threadIndex + 1, state.threads.length
-        ),
-      ],
-    };
+    return [
+      ...state.slice(0, threadIndex),
+      newThread,
+      ...state.slice(
+        threadIndex + 1, state.length
+      ),
+    ];
   } else if (action.type === 'DELETE_MESSAGE') {
-    console.log(state.threads)
-    const threadIndex = state.threads.findIndex(
+    const threadIndex = state.findIndex(
       (t) => t.messages.find((m) => (
         m.id === action.id
       ))
     );
-    const oldThread = state.threads[threadIndex];
-    console.log(oldThread);
+    const oldThread = state[threadIndex];
     const messageIndex = oldThread.messages.findIndex(
       (m) => m.id === action.id
     );
@@ -45,16 +55,13 @@ function reducer(state, action) {
       ...oldThread,
       messages: messages,
     };
-    return {
-      ...state,
-      threads: [
-        ...state.threads.slice(0, threadIndex),
-        newThread,
-        ...state.threads.slice(
-          threadIndex + 1, state.threads.length
-        ),
-      ],
-    };
+    return [
+      ...state.slice(0, threadIndex),
+      newThread,
+      ...state.slice(
+        threadIndex + 1, state.length
+      ),
+    ];
   } else {
     return state;
   }
@@ -98,6 +105,7 @@ const App = React.createClass({
       {
         title: t.title,
         active: t.id === activeThreadId,
+        id: t.id,
       }
     ));
     return (
@@ -110,9 +118,19 @@ const App = React.createClass({
 });
 
 const ThreadTabs = React.createClass({
+  handleClick: function(id) {
+    store.dispatch({
+      type: 'OPEN_THREAD',
+      id,
+    });
+  },
   render: function() {
     const tabs = this.props.tabs.map((tab, index) => (
-      <div key={index} className={tab.active ? 'active item' : 'item '}>
+      <div
+        key={index}
+        className={tab.active ? 'active item' : 'item '}
+        onClick={() => this.handleClick(tab.id)}
+      >
         {tab.title}
       </div>
     ));
