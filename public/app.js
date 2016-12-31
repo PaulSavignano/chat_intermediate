@@ -5,9 +5,24 @@ function reducer(state, action) {
       timestamp: Date.now(),
       id: uuid.v4(),
     };
+    const threadIndex = state.threads.findIndes(
+      (t) => t.id === action.threadId
+    );
+    const oldThread = state.threads[threadIndex];
+    const newThread = {
+      ...oldThread,
+      messages: oldThread.messages.concat(newMessage),
+    };
     return {
-      messages: state.messages.concat(newMessage),
-    }
+      ...state,
+      threads: [
+        ...state.threads.slice(0, threadIndex),
+        newThread,
+        ...state.threads.slice(
+          threadIndex + 1, state.threads.length
+        ),
+      ],
+    };
   } else if (action.type === 'DELETE_MESSAGE') {
     const index = state.messages.findIndex(
       (m) => m.id === action.id
@@ -64,7 +79,7 @@ const App = React.createClass({
         title: t.title,
         active: t.id === activeThreadId,
       }
-    ));
+    );
     return (
       <div className='ui segment'>
         <ThreadTabs tabs={tabs} />
