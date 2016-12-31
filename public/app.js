@@ -24,14 +24,34 @@ function reducer(state, action) {
       ],
     };
   } else if (action.type === 'DELETE_MESSAGE') {
-    const index = state.messages.findIndex(
+    console.log(state.threads)
+    const threadIndex = state.threads.findIndex(
+      (t) => t.messages.find((m) => (
+        m.id === action.id
+      ))
+    );
+    const oldThread = state.threads[threadIndex];
+    console.log(oldThread);
+    const messageIndex = oldThread.messages.findIndex(
       (m) => m.id === action.id
     );
+    const messages = [
+      ...oldThread.messages.slice(0, messageIndex),
+      ...oldThread.messages.slice(
+        messageIndex + 1, oldThread.messages.length
+      ),
+    ];
+    const newThread = {
+      ...oldThread,
+      messages: messages,
+    };
     return {
-      messages: [
-        ...state.messages.slice(0, index),
-        ...state.messages.slice(
-          index + 1, state.messages.length
+      ...state,
+      threads: [
+        ...state.threads.slice(0, threadIndex),
+        newThread,
+        ...state.threads.slice(
+          threadIndex + 1, state.threads.length
         ),
       ],
     };
@@ -108,7 +128,7 @@ const Thread = React.createClass({
   handleClick: function (id) {
     store.dispatch({
       type: 'DELETE_MESSAGE',
-      index: id,
+      id: id,
     });
   },
   render: function () {
